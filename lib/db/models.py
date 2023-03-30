@@ -3,11 +3,10 @@ from sqlalchemy import ForeignKey, Column, Integer, String
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 
-engine = create_engine('sqlite:///pet_stores.db')
+
+engine = create_engine('sqlite:///school.db')
 
 Base = declarative_base()
-
-# TEACHERS, STUDENTS, GRADES CLASSES
 
 
 class Teachers(Base):
@@ -21,14 +20,11 @@ class Teachers(Base):
     grades = relationship('Grades', backref=backref('teachers'))
 
     def __repr__(self):
-        return f'id: {self.id}, ' + \
-            f'first_name: {self.first_name}, ' + \
-            f'last_name: {self.last_name}, ' + \
-            f'subject: {self.subject}'
+        return f"Teacher(id={self.id}, name='{self.first_name} {self.last_name}', subject='{self.subject}')"
 
 
 class Students(Base):
-    __tablename__ = "students"
+    __tablename__ = 'students'
 
     id = Column(Integer(), primary_key=True)
     first_name = Column(String())
@@ -37,21 +33,16 @@ class Students(Base):
     grades = relationship('Grades', backref=backref('students'))
 
     def __repr__(self):
-        return f'id: {self.id}, ' + \
-            f'first_name: {self.first_name}, ' + \
-            f'last_name: {self.last_name}'
+        return f"Student(id={self.id}, name='{self.first_name} {self.last_name}')"
 
 
 class Grades(Base):
     __tablename__ = "grades"
 
     id = Column(Integer(), primary_key=True)
-    teacher_id = Column(Integer(), ForeignKey('teacher.id'))
-    student_id = Column(Integer(), ForeignKey('student.id'))
-    grades = Column(String())
+    teachers_id = Column(Integer(), ForeignKey('teachers.id'))
+    students_id = Column(Integer(), ForeignKey('students.id'))
+    grade = Column(String())
 
     def __repr__(self):
-        return f'id: {self.id}, ' + \
-            f'teacher_id: {self.teacher_id}, ' + \
-            f'student_id: {self.student_id}, ' + \
-            f'grades: {self.grades}'
+        return f"Grade(id={self.id}, teacher_id={self.teachers_id}, student_id={self.students_id}, grade='{self.grade}')"
