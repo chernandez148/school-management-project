@@ -185,24 +185,19 @@ def view_all_grades(teacher_id):
             grades = session.query(Grades).filter_by(
                 teachers_id=teacher_id).all()
             if grades:
-                # group the grades by student
-                grades_by_student = {}
-                for grade in grades:
-                    student_id = grade.students_id
-                    student = session.query(Students).get(student_id)
-                    if student:
-                        if student not in grades_by_student:
-                            grades_by_student[student] = []
-                        grades_by_student[student].append(grade.grade)
                 # print the grades to the console
-                        headers = ["id", "Students Name", "Grade"]
-                        data = [
-                            [g.id, f"{session.query(Students).get(g.students_id).first_name} {session.query(Students).get(g.students_id).last_name}", g.grade] for g in grades]
-                        print(tabulate(data, headers=headers, tablefmt="fancy_grid"))
+                headers = ["id", "Student", "Grade"]
+                data = [
+                    [g.id, f"{g.students.first_name} {g.students.last_name}", g.grade] for g in grades]
+                teacher_name = session.query(
+                    Teachers).filter_by(id=teacher_id).first()
+                teacher_name = f"{teacher_name.first_name} {teacher_name.last_name}"
+                print(f"Grades for {teacher_name}:")
+                print(tabulate(data, headers=headers, tablefmt="fancy_grid"))
             else:
-                print(f"No grades found for teacher with id {teacher_id}")
+                print(f"No grades found")
         else:
-            print(f"No teacher found with id {teacher_id}")
+            print(f"No teacher found with ID: {teacher_id}")
     except Exception as e:
         print(f"Error: {e}")
     finally:
@@ -242,17 +237,42 @@ def view_student_classes(student_id):
         if student:
             # print the student's classes to the console
             print(f"Classes for {student.first_name} {student.last_name}:")
+            data = []
             for grade in student.grades:
                 teacher = session.query(Teachers).filter_by(
                     id=grade.teachers_id).first()
-                print(
-                    f"{teacher.first_name} {teacher.last_name}: {teacher.subject}")
+                data.append(
+                    [teacher.subject, f"{teacher.first_name} {teacher.last_name}"])
+            if not data:
+                print("Student has no classes to show")
+            else:
+                headers = ["Subject", "Teacher"]
+                print(tabulate(data, headers=headers, tablefmt="fancy_grid"))
         else:
             print("Student not found")
     except Exception as e:
         print(f"Error: {e}")
     finally:
         session.close()
+
+
+# def view_all_teachers():
+#     session = Session()
+#     try:
+#         # query for all teachers
+#         teachers = session.query(Teachers).all()
+#         if teachers:
+#             # print the teachers to the console
+#             headers = ["id", "Name", "Subject"]
+#             data = [[t.id, f"{t.first_name} {t.last_name}", t.subject]
+#                     for t in teachers]
+#             print(tabulate(data, headers=headers, tablefmt="fancy_grid"))
+#         else:
+#             print("No teachers found")
+#     except Exception as e:
+#         print(f"Error: {e}")
+#     finally:
+#         session.close()
 
 
 def view_student_grades(student_id):
@@ -263,11 +283,15 @@ def view_student_grades(student_id):
         if student:
             # print the student's grades to the console
             print(f"Grades for {student.first_name} {student.last_name}:")
-            for grade in student.grades:
-                teacher = session.query(Teachers).filter_by(
-                    id=grade.teachers_id).first()
+            grades = student.grades
+            if not grades:
                 print(
-                    f"{teacher.first_name} {teacher.last_name}: {teacher.subject} {grade.grade}")
+                    f"{student.first_name} {student.last_name} has no grades to display.")
+            else:
+                headers = ["Teacher", "Subject", "Grade"]
+                data = [[f"{g.teachers.first_name} {g.teachers.last_name}",
+                         g.teachers.subject, g.grade] for g in grades]
+                print(tabulate(data, headers=headers, tablefmt="fancy_grid"))
         else:
             print("Student not found")
     except Exception as e:
